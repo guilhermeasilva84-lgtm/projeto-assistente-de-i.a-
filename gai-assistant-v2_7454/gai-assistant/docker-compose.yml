@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://gai:gai-local@db:5432/gai
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GAI_SECURE_COOKIES: ${GAI_SECURE_COOKIES:-false}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: gai
+      POSTGRES_USER: gai
+      POSTGRES_PASSWORD: gai-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gai -d gai"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:
